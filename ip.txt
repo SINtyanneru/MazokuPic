@@ -4,6 +4,5 @@ Peripherals   : E000F10
 Product No    : T0000
 Version       : V1.000
 Release Date  : 20240318
-Boot Filename : 1ST_READ.BIN
-SW Maker Name : RumiSystem
+SW Maker Name : RumiShistem
 Game Title    : MazokuPic
