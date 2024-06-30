@@ -7,7 +7,7 @@
 
 int IMAGE_POS_X = 0;
 int IMAGE_POS_Y = 0;
-float IMAGE_ZOOM = 1.5f;
+float IMAGE_ZOOM = 1.0f;
 
 int IMG_SELECT = 0;
 const int IMG_LENGTH = 12;
@@ -207,11 +207,9 @@ void Main() {
 			}else if(state->buttons & CONT_DPAD_LEFT){
 				//左
 				printf("LEFT\n");
-				IMAGE_POS_X = IMAGE_POS_X - 5;
 			}else if(state->buttons & CONT_DPAD_RIGHT){
 				//右
 				printf("RIGHT\n");
-				IMAGE_POS_X = IMAGE_POS_X + 5;
 			}
 		} else {
 			if(state->buttons == 0){
@@ -219,6 +217,10 @@ void Main() {
 				PLES = 0;
 			}
 		}
+
+		//アナログスティック
+		IMAGE_POS_X = IMAGE_POS_X - (state->joyx / 50);
+		IMAGE_POS_Y = IMAGE_POS_Y - (state->joyy / 50);
 
 		//入力チェック終了
 		MAPLE_FOREACH_END();
