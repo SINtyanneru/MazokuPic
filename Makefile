@@ -15,7 +15,7 @@ rm-elf:
 	-rm -f $(TARGET) romdisk.*
 
 $(TARGET): $(OBJS) 
-	kos-cc src/* -o $(TARGET) $(OBJS) -lpng -lmp3 -loggvorbisplay -lvorbis -logg -lz -lm
+	kos-cc -o $(TARGET) $(OBJS) -lpng -lz -lm
 
 run: $(TARGET)
 	$(KOS_LOADER) $(TARGET)
