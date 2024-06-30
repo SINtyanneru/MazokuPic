@@ -1,14 +1,19 @@
 #include <kos.h>
 #include <png/png.h>
 #include <oggvorbis/sndoggvorbis.h>
+#include <dc/biosfont.h>
 
 #include "Main.h"
 
-int OFFSET_X = 0;
-int OFFSET_Y = 0;
+int IMAGE_POS_X = 0;
+int IMAGE_POS_Y = 0;
+float IMAGE_ZOOM = 1.5f;
 
 int IMG_SELECT = 0;
 const int IMG_LENGTH = 12;
+
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 480;
 
 //テクスチャ
 pvr_ptr_t BACK_TEX;
@@ -86,12 +91,22 @@ void DRAW() {
 
 	//手前に描画するものを前に書かないと、おかしなことになるぞ。。。
 
-	DRAW_NUM(IMG_SELECT, 0, 0);
-	DRAW_NUM(IMG_SELECT + 1, 0, 64);
+	//デバッグ用画像
+	DRAW_NUM(IMG_SELECT, 0, SCREEN_HEIGHT - (64 * 2));
+	DRAW_NUM(IMG_SELECT + 1, 0, SCREEN_HEIGHT - 64);
 
-	DRAW_IMAGE(BACK_TEX, 0, 480 - 128, 640, 128, 512, 128);
+	//背景
+	DRAW_IMAGE(BACK_TEX, -1, SCREEN_HEIGHT - 128, 1024, 128, 1024, 128);
 
-	DRAW_IMAGE(IMAGE_TEX[IMG_SELECT], OFFSET_X, OFFSET_Y, 640.0f, 320.0f, 512, 256);
+	//画像本体
+	float CENTER_X = IMAGE_POS_X + 512 / 2;
+	float CENTER_Y = IMAGE_POS_Y + 256 / 2;
+	float IW = 512 * IMAGE_ZOOM;
+	float IH = 256 * IMAGE_ZOOM;
+	float IX = CENTER_X - IW / 2;
+	float IY = CENTER_Y - IH / 2;
+
+	DRAW_IMAGE(IMAGE_TEX[IMG_SELECT], IX, IY, IW, IH, 512, 256);
 
 	//描画完了
 	pvr_list_finish();
@@ -121,7 +136,7 @@ void Main() {
 	pvr_init_defaults();
 
 	//背景画像を読み込む
-	BACK_TEX = pvr_mem_malloc(512 * 128 * 2);
+	BACK_TEX = pvr_mem_malloc(1024 * 128 * 2);
 	png_to_texture("/rd/backgroud.png", BACK_TEX, PNG_NO_ALPHA);
 
 	//0番目と1番目の画像を読み込む
@@ -145,12 +160,21 @@ void Main() {
 	sndoggvorbis_start("/rd/BGM/Soaring_RES.ogg", 0);
 	*/
 
+	//画像を真ん中に表示するための座標を計算して代入する
+	IMAGE_POS_X = (SCREEN_WIDTH - 512) / 2;
+
 	int PLES = 0;
 	while(true) {
 		MAPLE_FOREACH_BEGIN(MAPLE_FUNC_CONTROLLER, cont_state_t, state)
 
 		//押されているフラグが経っていないなら処理
 		if(PLES == 0){
+			//何かが押されているなら
+			if(state->buttons != 0){
+				//押されているフラグを建てる
+				PLES = 1;
+			}
+
 			//画像切り替え(Aボタン)
 			if(state->buttons & CONT_A){
 				//次の画像を指定
@@ -164,9 +188,30 @@ void Main() {
 
 				//画像を読み込む
 				IMAGE_LOAD();
+			}
 
-				//押されているフラグを建てる
-				PLES = 1;
+			//移動系
+			if(state->buttons & CONT_DPAD_UP){
+				//上
+				printf("UP\n");
+				//IMAGE_POS_Y = IMAGE_POS_Y - 5;
+				IMAGE_ZOOM = IMAGE_ZOOM + 0.05f;
+			}else if(state->buttons & CONT_DPAD_DOWN){
+				//下
+				printf("UP\n");
+				//IMAGE_POS_Y = IMAGE_POS_Y + 5;
+
+				if(IMAGE_ZOOM > 1){
+					IMAGE_ZOOM = IMAGE_ZOOM - 0.05f;
+				}
+			}else if(state->buttons & CONT_DPAD_LEFT){
+				//左
+				printf("LEFT\n");
+				IMAGE_POS_X = IMAGE_POS_X - 5;
+			}else if(state->buttons & CONT_DPAD_RIGHT){
+				//右
+				printf("RIGHT\n");
+				IMAGE_POS_X = IMAGE_POS_X + 5;
 			}
 		} else {
 			if(state->buttons == 0){
@@ -175,29 +220,11 @@ void Main() {
 			}
 		}
 
-		//移動系
-		if(state->buttons & CONT_DPAD_UP){
-			//上
-			printf("UP\n");
-			OFFSET_Y = OFFSET_Y - 5;
-		}else if(state->buttons & CONT_DPAD_DOWN){
-			//下
-			printf("UP\n");
-			OFFSET_Y = OFFSET_Y + 5;
-		}else if(state->buttons & CONT_DPAD_LEFT){
-			//左
-			printf("LEFT\n");
-			OFFSET_X = OFFSET_X - 5;
-		}else if(state->buttons & CONT_DPAD_RIGHT){
-			//右
-			printf("RIGHT\n");
-			OFFSET_X = OFFSET_X + 5;
-		}
-
+		//入力チェック終了
 		MAPLE_FOREACH_END();
-		DRAW();
 
-		thd_sleep(10);
+		//画面病が
+		DRAW();
 	}
 
 	return;
