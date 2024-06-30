@@ -4,15 +4,15 @@
 
 #include "Main.h"
 
-//textures
-pvr_ptr_t BACK_TEX;
-pvr_ptr_t IMAGE_TEX[4];
-
 int OFFSET_X = 0;
 int OFFSET_Y = 0;
 
 int IMG_SELECT = 0;
-const int IMG_LENGTH = 3;
+const int IMG_LENGTH = 4;
+
+//テクスチャ
+pvr_ptr_t BACK_TEX;
+pvr_ptr_t IMAGE_TEX[5];
 
 //画像を描画する
 void DRAW_IMAGE(pvr_ptr_t TEX, int X, int Y, int W, int H, int ORIGINAL_W, int ORIGINAL_H){
@@ -92,14 +92,13 @@ void Main() {
 	png_to_texture("/rd/backgroud.png", BACK_TEX, PNG_NO_ALPHA);
 
 	//画像を読み込む
-	IMAGE_TEX[0] = pvr_mem_malloc(512 * 512 * 2);
-	png_to_texture("/rd/IMAGE/0.png", IMAGE_TEX[0], PNG_NO_ALPHA);
-	IMAGE_TEX[1] = pvr_mem_malloc(512 * 512 * 2);
-	png_to_texture("/rd/IMAGE/1.png", IMAGE_TEX[1], PNG_NO_ALPHA);
-	IMAGE_TEX[2] = pvr_mem_malloc(512 * 512 * 2);
-	png_to_texture("/rd/IMAGE/2.png", IMAGE_TEX[2], PNG_NO_ALPHA);
-	IMAGE_TEX[3] = pvr_mem_malloc(512 * 512 * 2);
-	png_to_texture("/rd/IMAGE/3.png", IMAGE_TEX[3], PNG_NO_ALPHA);
+	for(int I = 0; I < IMG_LENGTH + 1; I++){
+		char FILE_NAME[256];
+		sprintf(FILE_NAME, "/rd/IMAGE/%d.png", I);
+
+		IMAGE_TEX[I] = pvr_mem_malloc(512 * 512 * 2);
+		png_to_texture(FILE_NAME, IMAGE_TEX[I], PNG_NO_ALPHA);
+	}
 
 	/*OGGを再生する実験の残骸
 	snd_stream_init();
