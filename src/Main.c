@@ -113,10 +113,8 @@ void Main() {
 
 		//押されているフラグが経っていないなら処理
 		if(PLES == 0){
-			//画像切り替え
+			//画像切り替え(Aボタン)
 			if(state->buttons & CONT_A){
-				printf("A\n");
-
 				//次の画像を指定
 				IMG_SELECT++;
 
