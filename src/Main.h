@@ -12,3 +12,4 @@ const int SCREEN_HEIGHT = 480;
 pvr_ptr_t BACK_TEX;
 pvr_ptr_t IMAGE_TEX[1024];
 pvr_ptr_t FONT_TEX[10];
+pvr_ptr_t ICON_TEX[3];

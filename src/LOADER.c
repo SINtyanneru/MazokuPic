@@ -5,6 +5,16 @@ extern const int IMG_LENGTH;
 extern pvr_ptr_t BACK_TEX;
 extern pvr_ptr_t IMAGE_TEX[1024];
 extern pvr_ptr_t FONT_TEX[10];
+extern pvr_ptr_t ICON_TEX[3];
+
+
+/**
+ * 画像ファイルを読み込みます
+ */
+void LOAD_IMAGE_FILE(pvr_ptr_t TARGET, char *FILE_NAME, int W, int H){
+	TARGET = pvr_mem_malloc(W * H * 2);
+	png_to_texture(FILE_NAME, TARGET, PNG_NO_ALPHA);
+}
 
 /**
  * データを読み込み初期化します
@@ -28,6 +38,11 @@ void INIT_LOAD_DATA(){
 		FONT_TEX[I] = pvr_mem_malloc(32 * 64 * 2);
 		png_to_texture(FILE_NAME, FONT_TEX[I], PNG_NO_ALPHA);
 	}
+
+	//アイコンをロード
+	LOAD_IMAGE_FILE(ICON_TEX[0], "/rd/ICON/CURSOR.png", 16, 16);
+	LOAD_IMAGE_FILE(ICON_TEX[1], "/rd/ICON/LEFT.png", 16, 16);
+	LOAD_IMAGE_FILE(ICON_TEX[2], "/rd/ICON/RIGHT.png", 16, 16);
 }
 
 /**

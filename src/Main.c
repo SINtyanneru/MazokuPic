@@ -19,11 +19,13 @@ extern const int SCREEN_HEIGHT;
 pvr_ptr_t BACK_TEX;
 pvr_ptr_t IMAGE_TEX[1024];
 pvr_ptr_t FONT_TEX[10];
+pvr_ptr_t ICON_TEX[3];
 
 void Main() {
-	//init kos
+	//KOSを初期化
 	pvr_init_defaults();
 
+	//データをロード
 	INIT_LOAD_DATA();
 
 	//画像を真ん中に表示するための座標を計算して代入する
