@@ -14,58 +14,13 @@ int OFFSET_Y = 0;
 int IMG_SELECT = 0;
 const int IMG_LENGTH = 3;
 
-
-//背景画像を描画
-void DRAW_BACKGROUND(pvr_ptr_t BACK_TEX) {
-	pvr_poly_cxt_t cxt;
-	pvr_poly_hdr_t hdr;
-	pvr_vertex_t vert;
-
-	pvr_poly_cxt_txr(&cxt, PVR_LIST_OP_POLY, PVR_TXRFMT_RGB565, 512, 512, BACK_TEX, PVR_FILTER_BILINEAR);
-	pvr_poly_compile(&hdr, &cxt);
-	pvr_prim(&hdr, sizeof(hdr));
-
-	vert.argb = PVR_PACK_COLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	vert.oargb = 0;
-	vert.flags = PVR_CMD_VERTEX;
-
-	vert.x = 0.0f;
-	vert.y = 0.0f;
-	vert.z = 1.0f;
-	vert.u = 0.0f;
-	vert.v = 0.0f;
-	pvr_prim(&vert, sizeof(vert));
-
-	vert.x = 640.0f;
-	vert.y = 0.0f;
-	vert.z = 1.0f;
-	vert.u = 1.0f;
-	vert.v = 0.0f;
-	pvr_prim(&vert, sizeof(vert));
-
-	vert.x = 1.0f;
-	vert.y = 480.0f;
-	vert.z = 1.0f;
-	vert.u = 0.0f;
-	vert.v = 1.0f;
-	pvr_prim(&vert, sizeof(vert));
-
-	vert.x = 640.0f;
-	vert.y = 480.0f;
-	vert.z = 1.0f;
-	vert.u = 1.0f;
-	vert.v = 1.0f;
-	vert.flags = PVR_CMD_VERTEX_EOL;
-	pvr_prim(&vert, sizeof(vert));
-}
-
 //画像を描画する
-void DRAW_IMAGE(pvr_ptr_t IMAGE_TEX, int X, int Y, int W, int H){
+void DRAW_IMAGE(pvr_ptr_t IMAGE_TEX, int X, int Y, int W, int H, int ORIGINAL_W, int ORIGINAL_H){
 	pvr_poly_cxt_t cxt;
 	pvr_poly_hdr_t hdr;
 	pvr_vertex_t vert;
 
-	pvr_poly_cxt_txr(&cxt, PVR_LIST_OP_POLY, PVR_TXRFMT_RGB565, 512, 256, IMAGE_TEX, PVR_FILTER_BILINEAR);
+	pvr_poly_cxt_txr(&cxt, PVR_LIST_OP_POLY, PVR_TXRFMT_RGB565, ORIGINAL_W, ORIGINAL_H, IMAGE_TEX, PVR_FILTER_BILINEAR);
 	pvr_poly_compile(&hdr, &cxt);
 	pvr_prim(&hdr, sizeof(hdr));
 
@@ -111,8 +66,8 @@ void DRAW() {
 	pvr_list_begin(PVR_LIST_OP_POLY);
 
 	//手前に描画するものを前に書かないと、おかしなことになるぞ。。。
-	DRAW_IMAGE(IMAGE_TEX, OFFSET_X, OFFSET_Y, 640.0f, 320.0f);
-	DRAW_BACKGROUND(BACK_TEX);
+	DRAW_IMAGE(IMAGE_TEX, OFFSET_X, OFFSET_Y, 640.0f, 320.0f, 512, 256);
+	DRAW_IMAGE(BACK_TEX, 0, 0, 640.0f, 480.0f, 512, 512);
 
 	//描画完了
 	pvr_list_finish();
@@ -140,10 +95,12 @@ void Main() {
 	//画像を読み込む
 	SELECT_IMAGE(IMG_SELECT);
 
-	//snd_stream_init();
-	//sndoggvorbis_init();
+	/*OGGを再生する実験の残骸
+	snd_stream_init();
+	sndoggvorbis_init();
 
-	//sndoggvorbis_start("/rd/BGM/Soaring_RES.ogg", 0);
+	sndoggvorbis_start("/rd/BGM/Soaring_RES.ogg", 0);
+	*/
 
 	//keep drawing frames
 	while(true) {
