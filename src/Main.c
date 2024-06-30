@@ -6,7 +6,7 @@
 
 //textures
 pvr_ptr_t BACK_TEX;
-pvr_ptr_t IMAGE_TEX;
+pvr_ptr_t IMAGE_TEX[4];
 
 int OFFSET_X = 0;
 int OFFSET_Y = 0;
@@ -15,12 +15,12 @@ int IMG_SELECT = 0;
 const int IMG_LENGTH = 3;
 
 //画像を描画する
-void DRAW_IMAGE(pvr_ptr_t IMAGE_TEX, int X, int Y, int W, int H, int ORIGINAL_W, int ORIGINAL_H){
+void DRAW_IMAGE(pvr_ptr_t TEX, int X, int Y, int W, int H, int ORIGINAL_W, int ORIGINAL_H){
 	pvr_poly_cxt_t cxt;
 	pvr_poly_hdr_t hdr;
 	pvr_vertex_t vert;
 
-	pvr_poly_cxt_txr(&cxt, PVR_LIST_OP_POLY, PVR_TXRFMT_RGB565, ORIGINAL_W, ORIGINAL_H, IMAGE_TEX, PVR_FILTER_BILINEAR);
+	pvr_poly_cxt_txr(&cxt, PVR_LIST_OP_POLY, PVR_TXRFMT_RGB565, ORIGINAL_W, ORIGINAL_H, TEX, PVR_FILTER_BILINEAR);
 	pvr_poly_compile(&hdr, &cxt);
 	pvr_prim(&hdr, sizeof(hdr));
 
@@ -66,22 +66,21 @@ void DRAW() {
 	pvr_list_begin(PVR_LIST_OP_POLY);
 
 	//手前に描画するものを前に書かないと、おかしなことになるぞ。。。
-	DRAW_IMAGE(IMAGE_TEX, OFFSET_X, OFFSET_Y, 640.0f, 320.0f, 512, 256);
+
+	/*
+	char FILE_NAME[256];
+	sprintf(FILE_NAME, "/rd/FONT/%d.png", IMG_SELECT);
+	pvr_ptr_t FONT_TEX = pvr_mem_malloc(32 * 64 * 2);
+	png_to_texture(FILE_NAME, FONT_TEX, PNG_NO_ALPHA);
+	DRAW_IMAGE(FONT_TEX, 0, 0, 32, 64, 32, 64);
+	*/
+
+	DRAW_IMAGE(IMAGE_TEX[IMG_SELECT], OFFSET_X, OFFSET_Y, 640.0f, 320.0f, 512, 256);
 	DRAW_IMAGE(BACK_TEX, 0, 0, 640.0f, 480.0f, 512, 512);
 
 	//描画完了
 	pvr_list_finish();
 	pvr_scene_finish();
-}
-
-void SELECT_IMAGE(int I){
-	char FILE_NAME[256];
-
-	sprintf(FILE_NAME, "/rd/IMAGE/%d.png", I);
-
-	//読み込む
-	IMAGE_TEX = pvr_mem_malloc(512 * 256 * 2);
-	png_to_texture(FILE_NAME, IMAGE_TEX, PNG_NO_ALPHA);
 }
 
 void Main() {
@@ -93,33 +92,48 @@ void Main() {
 	png_to_texture("/rd/backgroud.png", BACK_TEX, PNG_NO_ALPHA);
 
 	//画像を読み込む
-	SELECT_IMAGE(IMG_SELECT);
+	IMAGE_TEX[0] = pvr_mem_malloc(512 * 512 * 2);
+	png_to_texture("/rd/IMAGE/0.png", IMAGE_TEX[0], PNG_NO_ALPHA);
+	IMAGE_TEX[1] = pvr_mem_malloc(512 * 512 * 2);
+	png_to_texture("/rd/IMAGE/1.png", IMAGE_TEX[1], PNG_NO_ALPHA);
+	IMAGE_TEX[2] = pvr_mem_malloc(512 * 512 * 2);
+	png_to_texture("/rd/IMAGE/2.png", IMAGE_TEX[2], PNG_NO_ALPHA);
+	IMAGE_TEX[3] = pvr_mem_malloc(512 * 512 * 2);
+	png_to_texture("/rd/IMAGE/3.png", IMAGE_TEX[3], PNG_NO_ALPHA);
 
 	/*OGGを再生する実験の残骸
 	snd_stream_init();
 	sndoggvorbis_init();
-
 	sndoggvorbis_start("/rd/BGM/Soaring_RES.ogg", 0);
 	*/
 
-	//keep drawing frames
+	int PLES = 0;
 	while(true) {
 		MAPLE_FOREACH_BEGIN(MAPLE_FUNC_CONTROLLER, cont_state_t, state)
-		//画像切り替え
-		if(state->buttons & CONT_A){
-			printf("A\n");
-			
-			//次の画像を指定
-			IMG_SELECT++;
 
-			//画像の最大枚数よりも多かったら
-			if(IMG_SELECT > IMG_LENGTH){
-				//0に戻す
-				IMG_SELECT = 0;
+		//押されているフラグが経っていないなら処理
+		if(PLES == 0){
+			//画像切り替え
+			if(state->buttons & CONT_A){
+				printf("A\n");
+
+				//次の画像を指定
+				IMG_SELECT++;
+
+				//画像の最大枚数よりも多かったら
+				if(IMG_SELECT > IMG_LENGTH){
+					//0に戻す
+					IMG_SELECT = 0;
+				}
+
+				//押されているフラグを建てる
+				PLES = 1;
 			}
-
-			//画像を読み込む
-			SELECT_IMAGE(IMG_SELECT);
+		} else {
+			if(state->buttons == 0){
+				//押されているフラグを折る
+				PLES = 0;
+			}
 		}
 
 		//移動系
@@ -142,7 +156,6 @@ void Main() {
 		}
 
 		MAPLE_FOREACH_END();
-
 		DRAW();
 
 		thd_sleep(10);
