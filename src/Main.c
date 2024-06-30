@@ -12,7 +12,7 @@ const int IMG_LENGTH = 12;
 
 //テクスチャ
 pvr_ptr_t BACK_TEX;
-pvr_ptr_t IMAGE_TEX[12];
+pvr_ptr_t IMAGE_TEX[1024];
 pvr_ptr_t FONT_TEX[10];
 
 //画像を描画する
@@ -59,6 +59,24 @@ void DRAW_IMAGE(pvr_ptr_t TEX, int X, int Y, int W, int H, int ORIGINAL_W, int O
 	pvr_prim(&vert, sizeof(vert));
 }
 
+void DRAW_NUM(int NUM, int X, int Y){
+	char STR[12];
+	snprintf(STR, sizeof(STR), "%d", NUM);
+
+	int LENGTH = strlen(STR);
+	int OFFSET = 0;
+	for(int I = 0; I < LENGTH; I++){
+		//Charからintに型変換
+		int NUMI = STR[I] - '0';
+
+		//数字を描画
+		DRAW_IMAGE(FONT_TEX[NUMI], X + OFFSET, Y, 32, 64, 32, 64);
+
+		//横軸をずらす
+		OFFSET = OFFSET + 32;
+	}
+}
+
 //描画
 void DRAW() {
 	//初期化
@@ -68,15 +86,34 @@ void DRAW() {
 
 	//手前に描画するものを前に書かないと、おかしなことになるぞ。。。
 
-	DRAW_IMAGE(FONT_TEX[IMG_SELECT], 0, 0, 32, 64, 32, 64);
+	DRAW_NUM(IMG_SELECT, 0, 0);
+	DRAW_NUM(IMG_SELECT + 1, 0, 64);
 
+	DRAW_IMAGE(BACK_TEX, 0, 480 - 128, 640, 128, 512, 128);
 
 	DRAW_IMAGE(IMAGE_TEX[IMG_SELECT], OFFSET_X, OFFSET_Y, 640.0f, 320.0f, 512, 256);
-	DRAW_IMAGE(BACK_TEX, 0, 0, 640.0f, 480.0f, 512, 512);
 
 	//描画完了
 	pvr_list_finish();
 	pvr_scene_finish();
+}
+
+void IMAGE_LOAD(){
+	//次の画像は無いなら、0番目を読み込む
+	if(IMG_SELECT + 1 > (IMG_LENGTH - 1)){
+		IMAGE_TEX[0] = pvr_mem_malloc(512 * 256 * 2);
+		png_to_texture("/rd/IMAGE/1.png", IMAGE_TEX[0], PNG_NO_ALPHA);
+	} else {
+		char FILE_NAME[256];
+		sprintf(FILE_NAME, "/rd/IMAGE/%d.png", IMG_SELECT + 2);      //※画像は1スタートの連番やぞ！！だからIMG_SELECTに+2しないと参照地とファイル名が一致しない！
+
+		//次の画像を読み込む
+		IMAGE_TEX[IMG_SELECT + 1] = pvr_mem_malloc(512 * 256 * 2);
+		png_to_texture(FILE_NAME, IMAGE_TEX[IMG_SELECT + 1], PNG_NO_ALPHA);
+
+		//前の前の画像をメモリから消す
+		pvr_mem_free(IMAGE_TEX[IMG_SELECT - 1]);
+	}
 }
 
 void Main() {
@@ -84,17 +121,14 @@ void Main() {
 	pvr_init_defaults();
 
 	//背景画像を読み込む
-	BACK_TEX = pvr_mem_malloc(512 * 512 * 2);
+	BACK_TEX = pvr_mem_malloc(512 * 128 * 2);
 	png_to_texture("/rd/backgroud.png", BACK_TEX, PNG_NO_ALPHA);
 
-	//画像を読み込む
-	for(int I = 1; I < IMG_LENGTH; I++){
-		char FILE_NAME[256];
-		sprintf(FILE_NAME, "/rd/IMAGE/%d.png", I);
-
-		IMAGE_TEX[I - 1] = pvr_mem_malloc(512 * 256 * 2);
-		png_to_texture(FILE_NAME, IMAGE_TEX[I - 1], PNG_NO_ALPHA);
-	}
+	//0番目と1番目の画像を読み込む
+	IMAGE_TEX[0] = pvr_mem_malloc(512 * 256 * 2);
+	png_to_texture("/rd/IMAGE/1.png", IMAGE_TEX[0], PNG_NO_ALPHA);
+	IMAGE_TEX[1] = pvr_mem_malloc(512 * 256 * 2);
+	png_to_texture("/rd/IMAGE/2.png", IMAGE_TEX[1], PNG_NO_ALPHA);
 
 	//フォントを読み込む
 	for(int I = 0; I < 10; I++){
@@ -127,6 +161,9 @@ void Main() {
 					//0に戻す
 					IMG_SELECT = 0;
 				}
+
+				//画像を読み込む
+				IMAGE_LOAD();
 
 				//押されているフラグを建てる
 				PLES = 1;
