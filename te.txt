@@ -1,0 +1,2 @@
+C:/DreamSDK/opt/toolchains/dc/sh-elf/lib/gcc/sh-elf/13.2.0/../../../../sh-elf/bin/ld.exe: romdisk.o:C:\DreamSDK\opt\toolchains\dc\kos\kernel\romdisk/romdiskbase.c:11:(.data.__kos_romdisk+0x0): undefined reference to `romdisk_data'
+collect2.exe: error: ld returned 1 exit status
